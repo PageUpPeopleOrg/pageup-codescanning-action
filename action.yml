@@ -12,5 +12,7 @@ runs:
       shell: bash
     - run: dotnet build ${{ inputs.solutionFilePath }}
       shell: bash
-    - run: security-scan ${{ inputs.solutionFilePath }}
+    - run: security-scan ${{ inputs.solutionFilePath }} --export=out.sarif
+      shell: bash
+    - run: cat out.sarif
       shell: bash
