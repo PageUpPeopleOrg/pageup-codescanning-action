@@ -1,37 +1,14 @@
-# action.yml
-name: "PageUp Code Scanning Action"
-author: "PageUp"
-description: "Execute code analysis"
-runs:
-  using: "composite"
-  steps:
-    - name: "Hello"
-      shell: bash
-      run: |
-        echo "hello world"
-        
-        
 name: 'PageUp Code Scanning Action'
 author: "PageUp"
 description: "Execute code analysis"
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  solutionFilePath: 
+    description: 'File path of solution'
     required: true
-    default: 'World'
-outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-number }}
 runs:
   using: "composite"
   steps:
-    - run: echo Hello ${{ inputs.who-to-greet }}.
+    - run: dotnet tool install --global security-scan
       shell: bash
-    - id: random-number-generator
-      run: echo "::set-output name=random-number::$(echo $RANDOM)"
-      shell: bash
-    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
-      shell: bash          
-    - run: goodbye.sh
+    - run: security-scan ${{ inputs.solutionFilePath }}
       shell: bash
