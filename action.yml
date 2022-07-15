@@ -10,5 +10,7 @@ runs:
   steps:
     - run: dotnet tool install --global security-scan
       shell: bash
+    - run: dotnet build ${{ inputs.solutionFilePath }}
+      shell: bash
     - run: security-scan ${{ inputs.solutionFilePath }}
       shell: bash
