@@ -20,11 +20,6 @@ runs:
       shell: bash
     - run: npx @security-alert/sarif-to-comment out.sarif --comment-url https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction/pull/2 --sarif-content-owner PageUpPeopleOrg --sarif-content-repo https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction --sarif-content-branch prtest2
       shell: bash
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        # Path to SARIF file relative to the root of the repository
-        sarif_file: out.sarif
 #     - name: Add Coverage PR Comment
 #       uses: marocchino/sticky-pull-request-comment@v2
 #       if: github.event_name == 'pull_request'
