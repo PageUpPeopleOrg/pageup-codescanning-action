@@ -14,7 +14,11 @@ runs:
       shell: bash
     - run: security-scan ${{ inputs.solutionFilePath }} --export=out.sarif
       shell: bash
-    - run: cat out.sarif
+#     - run: cat out.sarif
+#       shell: bash
+    - run: npm install @security-alert/sarif-to-comment
+      shell: bash
+    - run: npx @security-alert/sarif-to-comment out.sarif --comment-url https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction/pull/2 --sarif-content-owner PageUpPeopleOrg --sarif-content-repo https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction --sarif-content-branch prtest2
       shell: bash
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v2
