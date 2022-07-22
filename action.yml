@@ -6,16 +6,14 @@ runs:
   steps:
     - run: dotnet tool install --global security-scan
       shell: bash
+    - run: dotnet tool install --global dotnet-script
+      shell: bash
     - run: find . -name "*.sln" -exec dotnet build {} \;
       shell: bash
     - run: find . -name "*.sln" -exec security-scan {} --export={}.sarif \;
       shell: bash
-#     - run: cat out.sarif
-#       shell: bash
-#     - run: npm install @security-alert/sarif-to-comment
-#       shell: bash
-#     - run: npx @security-alert/sarif-to-comment out.sarif --comment-url https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction/pull/2 --sarif-content-owner PageUpPeopleOrg --sarif-content-repo https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction --sarif-content-branch prtest2
-#       shell: bash
+    - run: dotnet script sarif-to-markdown.csx
+      shell: bash
     - name: Add Coverage PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request'
