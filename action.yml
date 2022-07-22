@@ -10,9 +10,9 @@ runs:
   steps:
     - run: dotnet tool install --global security-scan
       shell: bash
-    - run: dotnet build ${{ inputs.solutionFilePath }}
+    - run: find . -name "*.sln" -exec dotnet build {} \;
       shell: bash
-    - run: security-scan ${{ inputs.solutionFilePath }} --export=out.sarif
+    - run: find . -name "*.sln" security-scan {} --export={}.sarif \;
       shell: bash
 #     - run: cat out.sarif
 #       shell: bash
