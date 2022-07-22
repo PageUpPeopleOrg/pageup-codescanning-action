@@ -12,6 +12,8 @@ runs:
       shell: bash
     - run: find . -name "*.sln" -exec security-scan {} --export={}.sarif \;
       shell: bash
+    - run: find . -name "*.csx"
+      shell: bash
     - run: dotnet script ./sarif-to-markdown.csx
       shell: bash
     - name: Add Coverage PR Comment
