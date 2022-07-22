@@ -12,7 +12,7 @@ runs:
       shell: bash
     - run: find . -name "*.sln" -exec security-scan {} --export={}.sarif \;
       shell: bash
-    - run: dotnet script sarif-to-markdown.csx
+    - run: dotnet script ./sarif-to-markdown.csx
       shell: bash
     - name: Add Coverage PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
