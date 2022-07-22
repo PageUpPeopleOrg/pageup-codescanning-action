@@ -1,10 +1,6 @@
 name: 'PageUp Code Scanning Action'
 author: "PageUp"
 description: "Execute code analysis"
-inputs:
-  solutionFilePath: 
-    description: 'File path of solution'
-    required: true
 runs:
   using: "composite"
   steps:
