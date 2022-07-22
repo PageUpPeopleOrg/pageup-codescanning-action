@@ -16,13 +16,13 @@ runs:
       shell: bash
 #     - run: cat out.sarif
 #       shell: bash
-    - run: npm install @security-alert/sarif-to-comment
-      shell: bash
-    - run: npx @security-alert/sarif-to-comment out.sarif --comment-url https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction/pull/2 --sarif-content-owner PageUpPeopleOrg --sarif-content-repo https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction --sarif-content-branch prtest2
-      shell: bash
-#     - name: Add Coverage PR Comment
-#       uses: marocchino/sticky-pull-request-comment@v2
-#       if: github.event_name == 'pull_request'
-#       with:
-#         recreate: true
-#         path: code-coverage-results.md
+#     - run: npm install @security-alert/sarif-to-comment
+#       shell: bash
+#     - run: npx @security-alert/sarif-to-comment out.sarif --comment-url https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction/pull/2 --sarif-content-owner PageUpPeopleOrg --sarif-content-repo https://github.com/PageUpPeopleOrg/TestCodeScanningGHAction --sarif-content-branch prtest2
+#       shell: bash
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
