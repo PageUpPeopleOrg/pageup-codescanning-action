@@ -16,11 +16,11 @@ runs:
       shell: bash
     - run: dotnet script ./sarif-to-markdown.csx
       shell: bash
-    - run: find . -name "code-coverage-results.md"
+    - run: ls -l
       shell: bash
     - name: Add Coverage PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request'
       with:
         hide_and_recreate: true
-        path: ./code-coverage-results.md
+        path: "./code-coverage-results.md"
