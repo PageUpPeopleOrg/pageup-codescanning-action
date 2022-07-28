@@ -12,7 +12,7 @@ foreach (var file in files)
     var json = r.ReadToEnd();
     
     var securityScan = JsonSerializer.Deserialize<SecurityScan>(json);
-    md.Append($"# PageUp Security Code Scan Results for {Path.GetFileName(file).Replace(".sarif", "")}");
+    md.Append($"# PageUp Security Code Scan Results: `{Path.GetFileName(file).Replace(".sarif", "")}`");
 
     if (securityScan?.Runs.FirstOrDefault()?.Results.Count > 0)
     {
@@ -22,6 +22,7 @@ foreach (var file in files)
 
 ");
 
+        md.Append("<details><summary>Results</summary>")
         foreach (var run in securityScan.Runs)
         {
             var tool = securityScan.Runs.FirstOrDefault()?.Tool;
@@ -30,6 +31,7 @@ foreach (var file in files)
                 md.Append(CreateResultInfo(result, tool));
             }
         }
+        md.Append("</details>")
     }
     else
     {
