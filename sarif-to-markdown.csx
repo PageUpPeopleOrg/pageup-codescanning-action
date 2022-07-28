@@ -6,30 +6,27 @@ using System.Text.Json.Serialization;
 
 var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", SearchOption.AllDirectories);
 var md = new StringBuilder();
+md.Append(@"# PageUp Security Code Scan
+");
+
 foreach (var file in files)
 {
     using var r = new StreamReader(file);
     var json = r.ReadToEnd();
-    
+
     var securityScan = JsonSerializer.Deserialize<SecurityScan>(json);
     md.Append(@$"
-
-# PageUp Security Code Scan Results: `{Path.GetFileName(file).Replace(".sarif", "")}`
-
+## Results for `{Path.GetFileName(file).Replace(".sarif", "")}`
 ");
 
     if (securityScan?.Runs.FirstOrDefault()?.Results.Count > 0)
     {
         md.Append(@"
-
-## :bug: Potential security issues have been found, please review your code.
-
+### :bug: Potential security issues have been found, please review your code.
 ");
 
         md.Append(@"
-
 <details><summary>Results</summary>
-
 ");
         foreach (var run in securityScan.Runs)
         {
@@ -40,34 +37,27 @@ foreach (var file in files)
             }
         }
         md.Append(@"
-
 </details>
-
 ");
     }
     else
     {
         md.Append(@"
-
-### :heavy_check_mark: No security issues have been found.
-
+#### :heavy_check_mark: No security issues have been found.
 ");
     }
 }
 
 await File.WriteAllTextAsync("code-coverage-results.md", md.ToString());
 
-
-
 string CreateResultInfo(Result result, Tool tool)
 {
     var rule = tool.Driver.Rules.FirstOrDefault(x => x.Id == result.RuleId);
     var location = result.Locations.FirstOrDefault();
     return $@"
+#### {rule?.Properties?.Category}: **{result.RuleId}** (severity: **{result.Level}**)
 
-### {rule?.Properties?.Category}: **{result.RuleId}** (severity: **{result.Level}**)
-
-#### {rule?.FullDescription?.Text}
+##### {rule?.FullDescription?.Text}
 
 > {result.Message.Text}
 
@@ -78,9 +68,8 @@ string CreateResultInfo(Result result, Tool tool)
 [More information on {result.RuleId}]({rule?.HelpUri})
 
 <details><summary>Details</summary>
-<pre>{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}</pre></details>
-
-------------------
+<pre>{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}</pre>
+</details>
 
 ";
 }
