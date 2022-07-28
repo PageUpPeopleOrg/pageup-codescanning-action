@@ -12,7 +12,11 @@ foreach (var file in files)
     var json = r.ReadToEnd();
     
     var securityScan = JsonSerializer.Deserialize<SecurityScan>(json);
-    md.Append($"# PageUp Security Code Scan Results: `{Path.GetFileName(file).Replace(".sarif", "")}`");
+    md.Append(@$"
+
+# PageUp Security Code Scan Results: `{Path.GetFileName(file).Replace(".sarif", "")}`
+
+");
 
     if (securityScan?.Runs.FirstOrDefault()?.Results.Count > 0)
     {
