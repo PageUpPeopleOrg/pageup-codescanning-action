@@ -22,7 +22,11 @@ foreach (var file in files)
 
 ");
 
-        md.Append("<details><summary>Results</summary>")
+        md.Append(@"
+
+<details><summary>Results</summary>
+
+");
         foreach (var run in securityScan.Runs)
         {
             var tool = securityScan.Runs.FirstOrDefault()?.Tool;
@@ -31,7 +35,11 @@ foreach (var file in files)
                 md.Append(CreateResultInfo(result, tool));
             }
         }
-        md.Append("</details>")
+        md.Append(@"
+
+</details>
+
+");
     }
     else
     {
