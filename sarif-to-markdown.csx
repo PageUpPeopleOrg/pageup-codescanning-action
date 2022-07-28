@@ -53,7 +53,7 @@ string CreateResultInfo(Result result, Tool tool)
 
 ### {rule?.Properties?.Category}: **{result.RuleId}** (severity: **{result.Level}**)
 
-#### {rule?.FullDescription.Text}
+#### {rule?.FullDescription?.Text}
 
 > {result.Message.Text}
 
