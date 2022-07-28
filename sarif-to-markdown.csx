@@ -4,26 +4,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-Console.WriteLine(Directory.GetCurrentDirectory());
-try {
-foreach (var file in Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", SearchOption.AllDirectories))
-{
-    Console.WriteLine(file);
-}
-} catch {}
-try {
-foreach (var file in Directory.GetFiles(".", "*.sarif", SearchOption.AllDirectories))
-{
-    Console.WriteLine(file);
-}
-} catch {}
-try {
-foreach (var file in Directory.GetFiles("./", "*.sarif", SearchOption.AllDirectories))
-{
-    Console.WriteLine(file);
-}
-} catch {}
-
 var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", SearchOption.AllDirectories);
 var md = new StringBuilder();
 foreach (var file in files)
