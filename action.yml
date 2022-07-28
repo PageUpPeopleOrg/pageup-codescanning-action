@@ -16,6 +16,10 @@ runs:
       shell: bash
     - run: dotnet script ./sarif-to-markdown.csx
       shell: bash
+    - run: pwd
+      shell: bash
+    - run: find . -name "*.sarif"
+      shell: bash
     - run: ls -l
       shell: bash
     - name: Add Coverage PR Comment
