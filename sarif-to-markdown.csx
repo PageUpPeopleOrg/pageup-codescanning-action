@@ -18,7 +18,7 @@ foreach (var file in files)
     {
         md.Append(@"
 
-## Potential security issues have been found, please review your code.
+## :bug: Potential security issues have been found, please review your code.
 
 ");
 
@@ -35,7 +35,7 @@ foreach (var file in files)
     {
         md.Append(@"
 
-### No security issues have been found.
+### :heavy_check_mark: No security issues have been found.
 
 ");
     }
