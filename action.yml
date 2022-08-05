@@ -8,7 +8,7 @@ runs:
       shell: bash
     - run: dotnet tool install --global dotnet-script
       shell: bash
-    - run: find . -name "*.sln" -exec dotnet build {} /p:ErrorLog="ErrorLog.csproj.sarif%2Cversion=2.1" \;
+    - run: find . -name "*.sln" -exec dotnet build {} /p:ErrorLog="ErrorLog.sarif%2Cversion=2.1" \;
       shell: bash
     - run: find . -name "*.sln" -exec security-scan {} --export={}.sarif \;
       shell: bash

@@ -31,24 +31,24 @@ var filePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", S
 foreach (var filePath in filePaths)
 {
     var filename = Path.GetFileName(filePath);
-    if (filename.Equals("ErrorLog.csproj.sarif")) continue;
+    if (filename.Equals("ErrorLog.sarif")) continue;
 
     securityCodeScanSarifs.Add(filename);
     CreateResult(filePath, md, filename);
 }
 
-var csprojFilePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "ErrorLog.csproj.sarif", SearchOption.AllDirectories);
+var csprojFilePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "ErrorLog.sarif", SearchOption.AllDirectories);
 foreach (var filePath in csprojFilePaths)
 {
-    var filename = $"{Path.GetFileName(Path.GetDirectoryName(filePath))}.csproj";
+    var filename = $"{Path.GetFileName(filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", ""))}.csproj";
     if (securityCodeScanSarifs.Contains(filename)) continue;
 
-    CreateResult(filePath, md, filename);
+    CreateResult(filePath, md, filename, true);
 }
 
 await File.WriteAllTextAsync("code-coverage-results.md", md.ToString());
 
-void CreateResult(string filePath, StringBuilder sb, string fileName)
+void CreateResult(string filePath, StringBuilder sb, string fileName, bool onlyErrors = false)
 {
     using var r = new StreamReader(filePath);
     var json = r.ReadToEnd();
@@ -58,7 +58,7 @@ void CreateResult(string filePath, StringBuilder sb, string fileName)
 ## Results for `{fileName}`
 ");
 
-    if (securityScan?.Runs.FirstOrDefault()?.Results.Count > 0)
+    if (ShouldProcess(onlyErrors, securityScan))
     {
         sb.Append(@"
 ### :bug: Potential security issues have been found, please review your code.
@@ -72,6 +72,12 @@ void CreateResult(string filePath, StringBuilder sb, string fileName)
             var tool = securityScan.Runs.FirstOrDefault()?.Tool;
             foreach (var result in run.Results)
             {
+                if (onlyErrors)
+                {
+                    if (result.Level != "error")
+                        continue;
+                }
+
                 sb.Append(CreateResultInfo(result, tool));
             }
         }
@@ -86,6 +92,15 @@ void CreateResult(string filePath, StringBuilder sb, string fileName)
 #### :heavy_check_mark: No security issues have been found.
 ");
     }
+}
+
+bool ShouldProcess(bool onlyErrors, SecurityScan securityScan1)
+{
+    if (!onlyErrors)
+        return true;
+
+    var runs = securityScan1?.Runs;
+    return runs != null && runs.Any(run => run.Results.Any(result => result.Level == "error"));
 }
 
 string CreateResultInfo(Result result, Tool tool)
