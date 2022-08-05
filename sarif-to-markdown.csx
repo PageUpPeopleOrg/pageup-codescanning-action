@@ -40,7 +40,7 @@ foreach (var filePath in filePaths)
 var csprojFilePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "ErrorLog.sarif", SearchOption.AllDirectories);
 foreach (var filePath in csprojFilePaths)
 {
-    var filename = $"{Path.GetFileName(filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", ""))}.csproj";
+    var filename = $"{Path.GetFileName(filePath.Replace("/ErrorLog.sarif", ""))}.csproj";
     if (securityCodeScanSarifs.Contains(filename)) continue;
 
     CreateResult(filePath, md, filename, true);
