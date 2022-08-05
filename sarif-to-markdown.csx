@@ -4,28 +4,67 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", SearchOption.AllDirectories);
 var md = new StringBuilder();
-md.Append(@"# PageUp Security Code Scan
+md.Append(@"# :lock_with_ink_pen: PageUp Security Code Scan
 ");
 
-foreach (var file in files)
+var hasDotnetEditorConfig = false;
+var editorConfigPaths = Directory.GetFiles(Directory.GetCurrentDirectory(), ".editorconfig", SearchOption.AllDirectories);
+foreach (var editorConfigPath in editorConfigPaths)
 {
-    using var r = new StreamReader(file);
+    using var r = new StreamReader(editorConfigPath);
+    if (r.ReadToEnd().Contains("dotnet_diagnostic.CA2352.severity = error"))
+    {
+        hasDotnetEditorConfig = true;
+        break;
+    }
+}
+
+if (!hasDotnetEditorConfig)
+{
+    md.Append(@"### :heavy_exclamation_mark: No `.editorconfig` file detected. Please add it to your repo!
+");
+}
+
+var securityCodeScanSarifs = new List<string>();
+var filePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", SearchOption.AllDirectories);
+foreach (var filePath in filePaths)
+{
+    var filename = Path.GetFileName(filePath);
+    if (filename.Equals("ErrorLog.csproj.sarif")) continue;
+
+    securityCodeScanSarifs.Add(filename);
+    CreateResult(filePath, md, filename);
+}
+
+var csprojFilePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "ErrorLog.csproj.sarif", SearchOption.AllDirectories);
+foreach (var filePath in csprojFilePaths)
+{
+    var filename = $"{Path.GetFileName(Path.GetDirectoryName(filePath))}.csproj";
+    if (securityCodeScanSarifs.Contains(filename)) continue;
+
+    CreateResult(filePath, md, filename);
+}
+
+await File.WriteAllTextAsync("code-coverage-results.md", md.ToString());
+
+void CreateResult(string filePath, StringBuilder sb, string fileName)
+{
+    using var r = new StreamReader(filePath);
     var json = r.ReadToEnd();
 
     var securityScan = JsonSerializer.Deserialize<SecurityScan>(json);
-    md.Append(@$"
-## Results for `{Path.GetFileName(file).Replace(".sarif", "")}`
+    sb.Append(@$"
+## Results for `{fileName}`
 ");
 
     if (securityScan?.Runs.FirstOrDefault()?.Results.Count > 0)
     {
-        md.Append(@"
+        sb.Append(@"
 ### :bug: Potential security issues have been found, please review your code.
 ");
 
-        md.Append(@"
+        sb.Append(@"
 <details><summary>Results</summary>
 ");
         foreach (var run in securityScan.Runs)
@@ -33,22 +72,21 @@ foreach (var file in files)
             var tool = securityScan.Runs.FirstOrDefault()?.Tool;
             foreach (var result in run.Results)
             {
-                md.Append(CreateResultInfo(result, tool));
+                sb.Append(CreateResultInfo(result, tool));
             }
         }
-        md.Append(@"
+
+        sb.Append(@"
 </details>
 ");
     }
     else
     {
-        md.Append(@"
+        sb.Append(@"
 #### :heavy_check_mark: No security issues have been found.
 ");
     }
 }
-
-await File.WriteAllTextAsync("code-coverage-results.md", md.ToString());
 
 string CreateResultInfo(Result result, Tool tool)
 {
