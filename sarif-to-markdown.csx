@@ -28,31 +28,22 @@ if (!hasDotnetEditorConfig)
 ");
 }
 
-var securityCodeScanSarifs = new List<string>();
 var filePaths = Directory.GetFiles(currentDirectory, "*.sarif", SearchOption.AllDirectories);
-Console.WriteLine($"filePaths Length: {filePaths.Length}");
-Console.WriteLine($"# LOOP 1");
+
+var securityCodeScanSarifs = new List<string>();
 foreach (var filePath in filePaths)
 {
     var filename = Path.GetFileName(filePath);
     if (filename.Equals("ErrorLog.sarif")) continue;
 
-    Console.WriteLine($"filename: {filename}");
-    Console.WriteLine($"---------");
     securityCodeScanSarifs.Add(filename);
     CreateResult(filePath, md, filename);
 }
 
-Console.WriteLine($"# LOOP 2");
 foreach (var filePath in filePaths)
 {
-    Console.WriteLine($"filePath: {filePath}");
-    Console.WriteLine($"replaced: {filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", "")}");
-
+    if (securityCodeScanSarifs.Contains(Path.GetFileName(filePath))) continue;
     var filename = $"{Path.GetFileName(filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", ""))}.csproj";
-    Console.WriteLine($"filename: {filename}");
-    Console.WriteLine($"---------");
-    if (securityCodeScanSarifs.Contains(filename)) continue;
 
     CreateResult(filePath, md, filename, true);
 }
@@ -66,7 +57,7 @@ void CreateResult(string filePath, StringBuilder sb, string fileName, bool onlyE
 
     var securityScan = JsonSerializer.Deserialize<SecurityScan>(json);
     sb.Append(@$"
-## Results for `{fileName}`
+## Results for `{fileName.Replace(".sarif", "")}`
 ");
 
     if (ShouldProcess(onlyErrors, securityScan))
@@ -78,18 +69,21 @@ void CreateResult(string filePath, StringBuilder sb, string fileName, bool onlyE
         sb.Append(@"
 <details><summary>Results</summary>
 ");
-        foreach (var run in securityScan.Runs)
+        if (securityScan != null)
         {
-            var tool = securityScan.Runs.FirstOrDefault()?.Tool;
-            foreach (var result in run.Results)
+            foreach (var run in securityScan.Runs)
             {
-                if (onlyErrors)
+                var tool = securityScan.Runs.FirstOrDefault()?.Tool;
+                foreach (var result in run.Results)
                 {
-                    if (result.Level != "error")
-                        continue;
-                }
+                    if (onlyErrors)
+                    {
+                        if (result.Level != "error")
+                            continue;
+                    }
 
-                sb.Append(CreateResultInfo(result, tool));
+                    sb.Append(CreateResultInfo(result, tool));
+                }
             }
         }
 
