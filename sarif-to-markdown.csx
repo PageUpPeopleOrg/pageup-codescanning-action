@@ -30,19 +30,28 @@ if (!hasDotnetEditorConfig)
 
 var securityCodeScanSarifs = new List<string>();
 var filePaths = Directory.GetFiles(currentDirectory, "*.sarif", SearchOption.AllDirectories);
+Console.WriteLine($"filePaths Length: {filePaths.Length}");
+Console.WriteLine($"# LOOP 1");
 foreach (var filePath in filePaths)
 {
     var filename = Path.GetFileName(filePath);
     if (filename.Equals("ErrorLog.sarif")) continue;
 
+    Console.WriteLine($"filename: {filename}");
+    Console.WriteLine($"---------");
     securityCodeScanSarifs.Add(filename);
     CreateResult(filePath, md, filename);
 }
 
-var csprojFilePaths = Directory.GetFiles(currentDirectory, "ErrorLog.sarif", SearchOption.AllDirectories);
-foreach (var filePath in csprojFilePaths)
+Console.WriteLine($"# LOOP 2");
+foreach (var filePath in filePaths)
 {
+    Console.WriteLine($"filePath: {filePath}");
+    Console.WriteLine($"replaced: {filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", "")}");
+
     var filename = $"{Path.GetFileName(filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", ""))}.csproj";
+    Console.WriteLine($"filename: {filename}");
+    Console.WriteLine($"---------");
     if (securityCodeScanSarifs.Contains(filename)) continue;
 
     CreateResult(filePath, md, filename, true);
