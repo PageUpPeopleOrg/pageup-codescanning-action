@@ -4,12 +4,14 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+var currentDirectory = Directory.GetCurrentDirectory();
+
 var md = new StringBuilder();
 md.Append(@"# :lock_with_ink_pen: PageUp Security Code Scan
 ");
 
 var hasDotnetEditorConfig = false;
-var editorConfigPaths = Directory.GetFiles(Directory.GetCurrentDirectory(), ".editorconfig", SearchOption.AllDirectories);
+var editorConfigPaths = Directory.GetFiles(currentDirectory, ".editorconfig", SearchOption.AllDirectories);
 foreach (var editorConfigPath in editorConfigPaths)
 {
     using var r = new StreamReader(editorConfigPath);
@@ -27,7 +29,7 @@ if (!hasDotnetEditorConfig)
 }
 
 var securityCodeScanSarifs = new List<string>();
-var filePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", SearchOption.AllDirectories);
+var filePaths = Directory.GetFiles(currentDirectory, "*.sarif", SearchOption.AllDirectories);
 foreach (var filePath in filePaths)
 {
     var filename = Path.GetFileName(filePath);
@@ -37,10 +39,10 @@ foreach (var filePath in filePaths)
     CreateResult(filePath, md, filename);
 }
 
-var csprojFilePaths = Directory.GetFiles(Directory.GetCurrentDirectory(), "ErrorLog.sarif", SearchOption.AllDirectories);
+var csprojFilePaths = Directory.GetFiles(currentDirectory, "ErrorLog.sarif", SearchOption.AllDirectories);
 foreach (var filePath in csprojFilePaths)
 {
-    var filename = $"{Path.GetFileName(filePath.Replace("/ErrorLog.sarif", ""))}.csproj";
+    var filename = $"{Path.GetFileName(filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", ""))}.csproj";
     if (securityCodeScanSarifs.Contains(filename)) continue;
 
     CreateResult(filePath, md, filename, true);
@@ -126,7 +128,6 @@ string CreateResultInfo(Result result, Tool tool)
 
 ";
 }
-
 
 public class SecurityScan
 {
