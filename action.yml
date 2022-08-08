@@ -12,7 +12,7 @@ runs:
       shell: bash
     - run: find . -name "*.sln" -exec security-scan {} --export={}.sarif \;
       shell: bash
-    - run: curl https://raw.githubusercontent.com/PageUpPeopleOrg/pageup-codescanning-action/4f1d68a6198c5c79db91ed3f58c8651eee3d473a/sarif-to-markdown.csx -o ./sarif-to-markdown.csx
+    - run: curl https://raw.githubusercontent.com/PageUpPeopleOrg/pageup-codescanning-action/b2e091eee461d38860021bbba1bb0f10d0c3c82b/sarif-to-markdown.csx -o ./sarif-to-markdown.csx
       shell: bash
     - run: dotnet script ./sarif-to-markdown.csx
       shell: bash
