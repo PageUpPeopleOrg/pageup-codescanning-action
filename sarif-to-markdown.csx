@@ -101,11 +101,14 @@ void CreateResult(string filePath, StringBuilder sb, string fileName, bool onlyE
 
 bool ShouldProcess(bool onlyErrors, SecurityScan securityScan1)
 {
-    if (!onlyErrors)
-        return true;
-
     var runs = securityScan1?.Runs;
-    return runs != null && runs.Any(run => run.Results.Any(result => result.Level == "error"));
+
+    if (runs == null)
+        return false;
+
+    return !onlyErrors
+        ? runs.Any(run => run.Results.Any())
+        : runs.Any(run => run.Results.Any(result => result.Level == "error"));
 }
 
 string CreateResultInfo(Result result, Tool tool)
