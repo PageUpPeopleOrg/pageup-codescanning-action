@@ -4,51 +4,131 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-var files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.sarif", SearchOption.AllDirectories);
+var currentDirectory = Directory.GetCurrentDirectory();
+
 var md = new StringBuilder();
-md.Append(@"# PageUp Security Code Scan
+md.Append(@"# :lock_with_ink_pen: PageUp Security Code Scan
 ");
 
-foreach (var file in files)
+var hasDotnetEditorConfig = false;
+var editorConfigPaths = Directory.GetFiles(currentDirectory, ".editorconfig", SearchOption.AllDirectories);
+foreach (var editorConfigPath in editorConfigPaths)
 {
-    using var r = new StreamReader(file);
+    using var r = new StreamReader(editorConfigPath);
+    if (r.ReadToEnd().Contains("dotnet_diagnostic.CA2352.severity = error"))
+    {
+        hasDotnetEditorConfig = true;
+        break;
+    }
+}
+
+if (!hasDotnetEditorConfig)
+{
+    md.Append(@"### :heavy_exclamation_mark: No `.editorconfig` file detected. Please add it to your repo!
+");
+}
+
+md.Append(@"### Summary
+
+{SummaryPlaceholder}
+
+<details><summary>Detailed Results</summary>
+");
+
+var filePaths = Directory.GetFiles(currentDirectory, "*.sarif", SearchOption.AllDirectories);
+
+var errorsList = new List<string>();
+
+var securityCodeScanSarifs = new List<string>();
+foreach (var filePath in filePaths)
+{
+    var filename = Path.GetFileName(filePath);
+    if (filename.Equals("ErrorLog.sarif")) continue;
+
+    securityCodeScanSarifs.Add(filename);
+    CreateResult(filePath, md, filename.Replace(".sarif", ""), errorsList);
+}
+
+foreach (var filePath in filePaths)
+{
+    if (securityCodeScanSarifs.Contains(Path.GetFileName(filePath))) continue;
+    var filename = $"{Path.GetFileName(filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", ""))}.csproj";
+
+    CreateResult(filePath, md, filename.Replace(".sarif", ""), errorsList, true);
+}
+
+md.Replace("{SummaryPlaceholder}",
+    errorsList.Count > 0
+        ? string.Join(Environment.NewLine, errorsList)
+        : ":heavy_check_mark: No security issues have been found.");
+
+md.Append(@"</details>
+");
+
+await File.WriteAllTextAsync("code-coverage-results.md", md.ToString());
+
+void CreateResult(string filePath, StringBuilder sb, string fileName, ICollection<string> errors, bool onlyErrors = false)
+{
+    using var r = new StreamReader(filePath);
     var json = r.ReadToEnd();
 
     var securityScan = JsonSerializer.Deserialize<SecurityScan>(json);
-    md.Append(@$"
-## Results for `{Path.GetFileName(file).Replace(".sarif", "")}`
+    sb.Append(@$"
+## Results for `{fileName}`
 ");
 
-    if (securityScan?.Runs.FirstOrDefault()?.Results.Count > 0)
+    if (ShouldProcess(onlyErrors, securityScan))
     {
-        md.Append(@"
+        errors.Add($"- :bug: Potential issues for **{fileName}**");
+
+        sb.Append(@"
 ### :bug: Potential security issues have been found, please review your code.
 ");
 
-        md.Append(@"
+        sb.Append(@"
 <details><summary>Results</summary>
 ");
-        foreach (var run in securityScan.Runs)
+        if (securityScan != null)
         {
-            var tool = securityScan.Runs.FirstOrDefault()?.Tool;
-            foreach (var result in run.Results)
+            foreach (var run in securityScan.Runs)
             {
-                md.Append(CreateResultInfo(result, tool));
+                var tool = securityScan.Runs.FirstOrDefault()?.Tool;
+                foreach (var result in run.Results)
+                {
+                    if (onlyErrors)
+                    {
+                        if (result.Level != "error")
+                            continue;
+                    }
+
+                    sb.Append(CreateResultInfo(result, tool));
+                }
             }
         }
-        md.Append(@"
+
+        sb.Append(@"
 </details>
 ");
     }
     else
     {
-        md.Append(@"
+        sb.Append(@"
 #### :heavy_check_mark: No security issues have been found.
 ");
     }
 }
 
-await File.WriteAllTextAsync("code-coverage-results.md", md.ToString());
+bool ShouldProcess(bool onlyErrors, SecurityScan securityScan1)
+{
+    var runs = securityScan1?.Runs;
+
+    if (runs == null)
+        return false;
+
+    return !onlyErrors
+        ? runs.Any(run => run.Results.Any())
+        : runs.Any(run => run.Results.Any(result => result.Level == "error"));
+}
 
 string CreateResultInfo(Result result, Tool tool)
 {
@@ -73,7 +153,6 @@ string CreateResultInfo(Result result, Tool tool)
 
 ";
 }
-
 
 public class SecurityScan
 {
