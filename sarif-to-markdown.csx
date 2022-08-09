@@ -28,7 +28,16 @@ if (!hasDotnetEditorConfig)
 ");
 }
 
+md.Append(@"### Summary
+
+{SummaryPlaceholder}
+
+<details><summary>Detailed Results</summary>
+");
+
 var filePaths = Directory.GetFiles(currentDirectory, "*.sarif", SearchOption.AllDirectories);
+
+var errorsList = new List<string>();
 
 var securityCodeScanSarifs = new List<string>();
 foreach (var filePath in filePaths)
@@ -37,7 +46,7 @@ foreach (var filePath in filePaths)
     if (filename.Equals("ErrorLog.sarif")) continue;
 
     securityCodeScanSarifs.Add(filename);
-    CreateResult(filePath, md, filename);
+    CreateResult(filePath, md, filename.Replace(".sarif", ""), errorsList);
 }
 
 foreach (var filePath in filePaths)
@@ -45,23 +54,34 @@ foreach (var filePath in filePaths)
     if (securityCodeScanSarifs.Contains(Path.GetFileName(filePath))) continue;
     var filename = $"{Path.GetFileName(filePath.Replace($"{Path.DirectorySeparatorChar}ErrorLog.sarif", ""))}.csproj";
 
-    CreateResult(filePath, md, filename, true);
+    CreateResult(filePath, md, filename.Replace(".sarif", ""), errorsList, true);
 }
 
-await File.WriteAllTextAsync("code-coverage-results.md", md.ToString());
+md.Replace("{SummaryPlaceholder}",
+    errorsList.Count == 0
+        ? string.Join(Environment.NewLine, errorsList)
+        : ":heavy_check_mark: No security issues have been found.");
 
-void CreateResult(string filePath, StringBuilder sb, string fileName, bool onlyErrors = false)
+md.Append(@"</details>
+");
+
+await File.WriteAllTextAsync("code -coverage-results.md", md.ToString());
+
+void CreateResult(string filePath, StringBuilder sb, string fileName, ICollection<string> errors, bool onlyErrors = false)
 {
     using var r = new StreamReader(filePath);
     var json = r.ReadToEnd();
 
     var securityScan = JsonSerializer.Deserialize<SecurityScan>(json);
+    var title = $"Results for `{fileName}`";
     sb.Append(@$"
-## Results for `{fileName.Replace(".sarif", "")}`
+## {title}
 ");
 
     if (ShouldProcess(onlyErrors, securityScan))
     {
+        errors.Add($"- :bug: [Potential issues for **{fileName}**](#{title.ToLower().Replace(" ", "-").Replace("`", "").Replace(".", "")})");
+
         sb.Append(@"
 ### :bug: Potential security issues have been found, please review your code.
 ");
