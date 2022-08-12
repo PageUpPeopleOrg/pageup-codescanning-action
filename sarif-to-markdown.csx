@@ -94,7 +94,7 @@ void CreateResult(string filePath, StringBuilder sb, string fileName, ICollectio
             {
                 var tool = securityScan.Runs.FirstOrDefault()?.Tool;
                 foreach (var result in run.Results.Where(result =>
-                             (!onlyErrors || result.Level == "error") && !result.Suppressions.Any()))
+                             (!onlyErrors || result.Level == "error") && !(result.Suppressions != null && result.Suppressions.Any())))
                 {
                     sb.Append(CreateResultInfo(result, tool));
                 }
