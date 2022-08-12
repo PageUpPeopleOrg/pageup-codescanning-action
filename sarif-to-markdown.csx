@@ -93,14 +93,9 @@ void CreateResult(string filePath, StringBuilder sb, string fileName, ICollectio
             foreach (var run in securityScan.Runs)
             {
                 var tool = securityScan.Runs.FirstOrDefault()?.Tool;
-                foreach (var result in run.Results)
+                foreach (var result in run.Results.Where(result =>
+                             (!onlyErrors || result.Level == "error") && !result.Suppressions.Any()))
                 {
-                    if (onlyErrors)
-                    {
-                        if (result.Level != "error")
-                            continue;
-                    }
-
                     sb.Append(CreateResultInfo(result, tool));
                 }
             }
@@ -127,7 +122,7 @@ bool ShouldProcess(bool onlyErrors, SecurityScan securityScan1)
 
     return !onlyErrors
         ? runs.Any(run => run.Results.Any())
-        : runs.Any(run => run.Results.Any(result => result.Level == "error"));
+        : runs.Any(run => run.Results.Any(result => result.Level == "error" && !result.Suppressions.Any()));
 }
 
 string CreateResultInfo(Result result, Tool tool)
@@ -195,6 +190,9 @@ public class Result
     [JsonPropertyName("locations")]
     public List<Location> Locations { get; set; }
 
+    [JsonPropertyName("suppressions")]
+    public List<Suppression> Suppressions { get; set; }
+
     [JsonPropertyName("properties")]
     public ResultProperties Properties { get; set; }
 
@@ -206,6 +204,15 @@ public class Location
 {
     [JsonPropertyName("physicalLocation")]
     public PhysicalLocation PhysicalLocation { get; set; }
+}
+
+public class Suppression
+{
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; }
+
+    [JsonPropertyName("justification")]
+    public string Justification { get; set; }
 }
 
 public class PhysicalLocation
