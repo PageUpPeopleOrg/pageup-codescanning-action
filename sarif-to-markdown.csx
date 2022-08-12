@@ -94,7 +94,8 @@ void CreateResult(string filePath, StringBuilder sb, string fileName, ICollectio
             {
                 var tool = securityScan.Runs.FirstOrDefault()?.Tool;
                 foreach (var result in run.Results.Where(result =>
-                             (!onlyErrors || result.Level == "error") && !(result.Suppressions != null && result.Suppressions.Any())))
+                             (!onlyErrors || result.Level == "error") &&
+                             !(result.Suppressions != null && result.Suppressions.Any())))
                 {
                     sb.Append(CreateResultInfo(result, tool));
                 }
@@ -122,7 +123,8 @@ bool ShouldProcess(bool onlyErrors, SecurityScan securityScan1)
 
     return !onlyErrors
         ? runs.Any(run => run.Results.Any())
-        : runs.Any(run => run.Results.Any(result => result.Level == "error" && !result.Suppressions.Any()));
+        : runs.Any(run => run.Results.Any(result =>
+            result.Level == "error" && !(result.Suppressions != null && result.Suppressions.Any())));
 }
 
 string CreateResultInfo(Result result, Tool tool)
