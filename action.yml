@@ -4,6 +4,12 @@ description: "Execute code analysis"
 runs:
   using: "composite"
   steps:
+    - name: 🛠️ Setup dotnet
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: | 
+          6.0.x
+          8.0.x
     - run: dotnet tool install --global security-scan
       shell: bash
     - run: dotnet tool install --global dotnet-script
